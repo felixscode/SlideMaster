@@ -22,8 +22,9 @@ git clone https://github.com/yourusername/slides_deployment.git
 cd slides_deployment
 
 # Configure authentication
-echo "your_github_token" > ./secrets/github_token
-echo "your_password" > ./secrets/streamlit_passwords
+mkdir secretes/
+nano ./secrets/github_token # paste your personal github token here 
+echo "your_password" > ./secrets/streamlit_passwords # place desired password(s) here
 # hash password (to make it somehow secure)
 python hash_password.py -f ./secrets/streamlit_passwords
 
