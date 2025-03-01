@@ -208,7 +208,7 @@ def _download_from_github(local_filename: str, repo_dict: Dict[str, Any]) -> Non
         # Download the actual file
         file_response = requests.get(download_url, headers=headers)
         if file_response.status_code == 200:
-            with open(file_path.split("/")[-1], "wb") as file:
+            with open(local_filename, "wb") as file:
                 file.write(file_response.content)
             logging.info(f"Download successful: {file_path}")
         else:
@@ -379,7 +379,7 @@ def main() -> None:
     Main Streamlit application function.
     Handles authentication, fetches presentations, and displays the selected presentation.
     """
-    st.title("SlideMaster :rocket:")
+    st.title("SlideMaster3000 :rocket:")
 
     # Authenticate user
     authenticate()

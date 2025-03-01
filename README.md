@@ -1,10 +1,10 @@
-# 🔥SlideMaster: Streamlined Presentation Deployment
+# 🔥SlideMaster3000: Streamlined Presentation Deployment
 
- SlideMaster is a solution for deploying [Slidev](https://sli.dev/) presentations from GitHub, enabling seamless access through a web browser. This application eliminates common presentation challenges by providing a centralized, platform for slide management and distribution.
+ SlideMaster3000 is a solution for deploying [Slidev](https://sli.dev/) presentations from GitHub, enabling seamless access through a web browser. This application eliminates common presentation challenges by providing a centralized, platform for slide management and distribution.
 
 ## 🚀 Overview
 
-SlideMaster addresses common challenges in presentation delivery by:
+SlideMaster3000 addresses common challenges in presentation delivery by:
 
 1. 📦 Retrieving Slidev presentations from a GitHub repository
 2. 💻 Rendering them on a server using Streamlit
@@ -123,7 +123,7 @@ slides-repo/
 └── ...
 ```
 
-SlideMaster automatically detects folders containing a `slides.md` file and presents them as available presentations.
+SlideMaster3000 automatically detects folders containing a `slides.md` file and presents them as available presentations.
 
 ## 💡 Note
 
@@ -139,11 +139,11 @@ SlideMaster automatically detects folders containing a `slides.md` file and pres
 
 ## ❓ Frequently Asked Questions
 
-**Q: What advantages does SlideMaster offer over Slidev's built-in hosting?**  
-A: SlideMaster provides authentication, centralized presentation management, and eliminates the need for multiple server instances.
+**Q: What advantages does SlideMaster3000 offer over Slidev's built-in hosting?**  
+A: SlideMaster3000 provides authentication, centralized presentation management, and eliminates the need for multiple server instances.
 
-**Q: Is SlideMaster suitable for enterprise presentations?**  
-A: NO! As of now SlideMaster is a **1. DAY build**. Authentication is **not secure** and process managemnt quite ambigous
+**Q: Is SlideMaster3000 suitable for enterprise presentations?**  
+A: NO! As of now SlideMaster3000 is a **1. DAY build**. Authentication is **not secure** and process managemnt quite ambigous
 
 **Q: Can the default port configuration be modified?**  
 A: Yes, port configuration can be modified by updating the Slidev startup parameters and corresponding iframe URL.
