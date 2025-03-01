@@ -24,9 +24,12 @@ cd slides_deployment
 # Configure authentication
 echo "your_github_token" > ./secrets/github_token
 echo "your_password" > ./secrets/streamlit_passwords
+# hash password (to make it somehow secure)
+python hash_password.py -f ./secrets/streamlit_passwords
 
+nano .env # set the env vars accordingly 
 # Deploy with Docker Compose
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 Access the application at http://localhost:8502 after deployment.
@@ -79,7 +82,15 @@ For local development and customization:
    ```bash
    mkdir -p secrets
    echo "your_github_token" > secrets/github_token
-   echo "your_password" > secrets/streamlit_passwords
+   
+   # Generate hashed password
+   python hash_password.py your_password
+   # Add the output hash to secrets/streamlit_passwords
+   
+   # Or hash passwords from a file
+   python hash_password.py -f password_list.txt
+   # Then move the generated .hashed file
+   mv password_list.txt.hashed secrets/streamlit_passwords
    ```
 
 5. **Application Launch**:
@@ -115,7 +126,12 @@ SlideMaster automatically detects folders containing a `slides.md` file and pres
 
 ## 💡 Note
 
-- **Authentication Management**: Each line in `secrets/streamlit_passwords` represents a valid password
+- **Environment Configuration**: The `.env` file contains the following settings:
+  - `STREAMLIT_PASSWORD_FILE`: Path to the password file (default: `./secrets/streamlit_passwords`)
+  - `GITHUB_TOKEN_FILE`: Path to the GitHub token file (default: `./secrets/github_token`)
+  - `GITHUB_USER`: GitHub username that owns the slides repository (default: `felixscode`)
+  - `GITHUB_REPO`: GitHub repository name containing the presentations (default: `slides`)
+- **Authentication Management**: Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
 - **Remote Presentation Control**: The `--remote` flag enables multi-device presentation control
 - **Custom Interface**: Modify the iframe CSS in `view_presentation()` function to customize the presentation view
 - **Process Management**: The application automatically handles port conflicts and process management

@@ -14,13 +14,12 @@ import re
 from typing import Dict, List, Tuple, Optional, Generator, Any, Union
 
 # Configuration
-STREAMLIT_PASSWORD_FILE = Path("./secrets/streamlit_passwords")
-GITHUB_TOKEN_FILE = Path("./secrets/github_token")
-GITHUB_USER = "felixscode"
-GITHUB_REPO = "slides"
+STREAMLIT_PASSWORD_FILE = Path(os.environ.get("STREAMLIT_PASSWORD_FILE", "./secrets/streamlit_passwords"))
+GITHUB_TOKEN_FILE = Path(os.environ.get("GITHUB_TOKEN_FILE", "./secrets/github_token"))
+GITHUB_USER = os.environ.get("GITHUB_USER", "felixscode")
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "slides")
 LOGLEVEL = logging.INFO
 SLIDEV_PID_ENV_VAR = "SLIDEV_PID"
-
 
 # --- ASYNC API CALLS ---
 def _get_github_token() -> str:
@@ -100,32 +99,90 @@ def get_presentations() -> Dict[str, Dict[str, Any]]:
     return presentations if presentations else {}
 
 # --- AUTHENTICATION ---
-def _get_passwords() -> List[str]:
+import hashlib
+import time
+
+def _get_hashed_passwords() -> List[str]:
     """
-    Reads valid passwords from a file.
+    Reads hashed passwords from a file.
     
     Returns:
-        List[str]: List of valid passwords
+        List[str]: List of valid hashed passwords
     """
     with open(STREAMLIT_PASSWORD_FILE, "r") as f:
         return f.read().splitlines()
 
+def _hash_password(password: str) -> str:
+    """
+    Creates a SHA-256 hash of the password.
+    
+    Args:
+        password: Plain text password to hash
+        
+    Returns:
+        str: Hashed password
+    """
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def _is_valid_hash(input_password: str, hashed_passwords: List[str]) -> bool:
+    """
+    Checks if the hashed input password matches any stored hashed password.
+    
+    Args:
+        input_password: Plain text password from user
+        hashed_passwords: List of hashed passwords to check against
+        
+    Returns:
+        bool: True if password is valid, False otherwise
+    """
+    hashed_input = _hash_password(input_password)
+    return hashed_input in hashed_passwords
+
 def authenticate() -> None:
     """
-    Handles user authentication with password input.
+    Handles user authentication with secure password hashing.
     Sets authenticated state in Streamlit session state.
+    Implements basic session timeout and failed login tracking.
     """
+    # Initialize session state variables
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-
+    if "login_time" not in st.session_state:
+        st.session_state.login_time = None
+    if "failed_attempts" not in st.session_state:
+        st.session_state.failed_attempts = 0
+    if "last_attempt_time" not in st.session_state:
+        st.session_state.last_attempt_time = 0
+        
+    # Check for session timeout (30 minutes)
+    if st.session_state.authenticated and st.session_state.login_time:
+        if time.time() - st.session_state.login_time > 1800:  # 30 minutes
+            st.session_state.authenticated = False
+            st.warning("Your session has expired. Please login again.")
+    
+    # Check for login attempt rate limiting
+    if st.session_state.failed_attempts >= 5:
+        time_since_last = time.time() - st.session_state.last_attempt_time
+        if time_since_last < 60:  # 1 minute lockout
+            st.error(f"Too many failed attempts. Please try again in {60 - int(time_since_last)} seconds.")
+            st.stop()
+        else:
+            # Reset counter after lockout period
+            st.session_state.failed_attempts = 0
+    
     if not st.session_state.authenticated:
         password = st.text_input("Password", type="password")
         if st.button("Login"):
-            valid_passwords = _get_passwords()
-            if password in valid_passwords:
-                st.session_state.authenticated = True  # Store authentication state
+            st.session_state.last_attempt_time = time.time()
+            hashed_passwords = _get_hashed_passwords()
+            
+            if _is_valid_hash(password, hashed_passwords):
+                st.session_state.authenticated = True
+                st.session_state.login_time = time.time()
+                st.session_state.failed_attempts = 0
             else:
-                st.error("Invalid credentials.")
+                st.session_state.failed_attempts += 1
+                st.error(f"Invalid credentials. Attempts remaining: {5 - st.session_state.failed_attempts}")
                 st.stop()
 
 # --- PRESENTATION BUILD & VIEW ---
@@ -200,7 +257,6 @@ def _start_slidev() -> None:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
-    st.info("Slidev started...")
     logging.info("...Slidev started")
 
 def _extract_pid(command_output: str) -> Optional[str]:
@@ -266,18 +322,13 @@ def _build_slidev(presentation: Dict[str, Any]) -> None:
     Raises:
         Exception: If presentation build fails
     """
-    st.info("downloading files from github...")
     try:
-        st.progress(0)
-        _cache_presentation(presentation)
-        st.progress(0.3)
-        _start_slidev()
-        st.progress(0.6)
-        counter = 0.6
-        while not _is_port_in_use(3030):
-            time.sleep(0.1)
-            counter += 0.05
-            st.progress(min(1, counter))
+        with st.spinner("⏲️ Preparing presentation..."):
+            _cache_presentation(presentation)
+            _start_slidev()
+            while not _is_port_in_use(3030):
+                time.sleep(0.1)
+         
     except Exception as e:
         st.error("Sorry something went wrong")
         raise e # comment for prod
