@@ -71,7 +71,7 @@ def _match_pres_data(gh_data: Dict[str, Any]) -> Generator[Tuple[str, Dict[str, 
     Yields:
         Tuple[str, Dict[str, Any]]: Tuples of (presentation name, presentation data)
     """
-    items_to_ignore = ["README.md"]
+    items_to_ignore = ["README.md","slidev-dev.sh",'.gitignore']
     for item in gh_data["tree"]:
         if "/" not in item["path"] and item["path"] not in items_to_ignore:
             name = item["path"]
