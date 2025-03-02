@@ -193,6 +193,11 @@ A: Yes, port configuration can be modified by updating the Slidev startup parame
 
 This software is available for use under standard MIT open-source terms.
 
+## ✅ TODO
+
+- add build caching
+- improve slidev integration (get rid of extra subdomain for deployment)
+
 ---
 
 Developed with ❤️ in the ⛰️ by **Felix Schelling**
