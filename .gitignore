@@ -4,3 +4,5 @@ assets/
 dist/
 secrets/
 CLAUDE.md
+index.html
+build_serve.log

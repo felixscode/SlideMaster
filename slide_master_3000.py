@@ -360,46 +360,97 @@ def _build_slidev(presentation: Dict[str, Any]) -> None:
         st.error("Sorry something went wrong")
         raise e # comment for prod
 
+def _generate_presentation_token(presentation_name: str) -> str:
+    """
+    Generate a secure token for accessing a presentation
+    
+    Args:
+        presentation_name: Name of the presentation this token grants access to
+        
+    Returns:
+        str: The generated token
+    """
+    import secrets
+    import json
+    
+    # Create a secure random token
+    token = secrets.token_urlsafe(32)
+    
+    # Set expiration time (10 hour from now)
+    expiry = int(time.time()) + 36000
+    
+    # Define token data
+    token_data = {
+        "presentation": presentation_name,
+        "created": int(time.time()),
+        "expires": expiry,
+        "user": st.session_state.get("user", "unknown")
+    }
+    
+    # Load existing tokens
+    tokens_file = os.environ.get("SLIDEV_TOKENS_FILE", "./secrets/slidev_tokens.json")
+    try:
+        if os.path.exists(tokens_file):
+            with open(tokens_file, "r") as f:
+                tokens = json.load(f)
+        else:
+            tokens = {}
+    except Exception as e:
+        logging.error(f"Error reading tokens file: {e}")
+        tokens = {}
+    
+    # Add the new token
+    tokens[token] = token_data
+    
+    # Save updated tokens
+    os.makedirs(os.path.dirname(tokens_file), exist_ok=True)
+    with open(tokens_file, "w") as f:
+        json.dump(tokens, f)
+    
+    return token
+
 def view_presentation(presentation: Dict[str, Any]) -> None:
     """
-    Embeds the Slidev presentation into Streamlit using an iframe.
+    Opens the Slidev presentation in a new tab with a secure access token.
     
     Args:
         presentation: Dictionary containing presentation data
     """
+    # Get the presentation name
+    presentations = get_presentations()
+    presentation_name = next(name for name, data in presentations.items() if data == presentation)
+    
+    # Build the slidev presentation
     _build_slidev(presentation)
+    
+    # Generate a secure access token
+    token = _generate_presentation_token(presentation_name)
+    
     # Use the domain name instead of localhost for production
     domain = os.environ.get("SLIDEV_HOST_URL", "http://localhost:3030/")
-    slidev_url = domain
-    st.markdown("""
-        <style>
-            /* Hide Streamlit header and menu */
-            header {display: none !important;}
-            .st-emotion-cache-1v0mbdj {display: none !important;}  /* Hides the menu */
+    slidev_url = f"{domain}?access_token={token}"
+    logging.info(f"Presentation ready at: {slidev_url}")
+    
+    # Display instructions to the user
+    st.success(f"Presentation '{presentation_name}' is ready.")
 
-            /* Hide footer */
-            footer {visibility: hidden;}
-
-            /* Ensure iframe takes full screen */
-            .fullscreen-iframe {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 100vw;
-                height: 100vh;
-                border: none;
-                z-index: 999;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-        <iframe src="{slidev_url}" class="fullscreen-iframe" 
-            allowfullscreen 
-            allow="fullscreen"
-        ></iframe>
-    """, unsafe_allow_html=True)
+    # Create a button that redirects using HTML anchor behavior
+    html_button = f"""
+    <a href="{slidev_url}" target="_blank" style="
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;">
+        Open Slides
+    </a>
+    """
+    st.markdown(html_button, unsafe_allow_html=True)
 
 
 # --- STREAMLIT MAIN APP ---
@@ -423,9 +474,8 @@ def main() -> None:
         # Dropdown to select a presentation
         presentation = st.selectbox("Select Presentation", list(presentations.keys()))
 
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            show = st.button("Show Presentation", use_container_width=True)
+
+        show = st.button("Show Presentation", use_container_width=True)
 
         if show:
             view_presentation(presentations[presentation])

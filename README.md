@@ -166,16 +166,21 @@ SlideMaster3000 automatically detects folders containing a `slides.md` file and 
   - `GITHUB_USER`: GitHub username that owns the slides repository (default: `felixscode`)
   - `GITHUB_REPO`: GitHub repository name containing the presentations (default: `slides`)
   - `SLIDEV_HOST_URL`: URL path where Slidev presentations will be served (default: `/slidev/`)
-- **Authentication Management**: Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
+- **Authentication Management**: 
+  - Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
+  - Slidev presentations are protected with secure token-based authentication
+  - Tokens are temporary (1 hour expiration) and tied to specific presentations
+  - Users must authenticate through the Streamlit interface to receive valid tokens
 - **Static Build Architecture**: The application:
-  - Uses `build_and_serve.sh` script to build Slidev content with `npx slidev build ` 
-  - Serves static files using a Python HTTP server
+  - Uses `build_and_serve.sh` script to build Slidev content with `npx slidev build`
+  - Serves static files using a custom token-authenticated Python HTTP server 
 - **Process Management**: The application automatically:
   - Stops any process using port 3030 before starting a new presentation
   - Sets maximum wait time limits to prevent hanging on failed server startups
+  - Manages token validation for all presentation access
 - **Reverse Proxy Setup**: The provided Caddyfile configures a reverse proxy that:
   - Routes the main Streamlit application from your domain's root path
-  - Routes the Slidev presentations through subdomain without exposing port 3030
+  - Routes the Slidev presentations through subdomain with secure token-based access
   - Eliminates the need to open additional ports in your firewall
 
 ## ❓ Frequently Asked Questions
@@ -196,7 +201,8 @@ This software is available for use under standard MIT open-source terms.
 ## ✅ TODO
 
 - add build caching
-- improve slidev integration (get rid of extra subdomain for deployment)
+- add token sys for subdomain (slidev server)
+- refactor code 
 
 ---
 
