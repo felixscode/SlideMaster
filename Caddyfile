@@ -1,0 +1,17 @@
+# Caddy configuration for SlideMaster3000
+# This file configures the reverse proxy setup for both the main application and the Slidev presentations.
+
+# Replace yourdomain.com with your actual domain
+yourdomain.com {
+    # Main application - proxies the Streamlit interface
+    handle /* {
+        reverse_proxy localhost:8502
+    }
+
+    # Slidev presentations - proxies the Slidev server
+    # This allows Slidev to be accessed at yourdomain.com/slidev/ without exposing port 3030
+    handle /slidev/* {
+        reverse_proxy localhost:3030
+        uri strip_prefix /slidev
+    }
+}

@@ -326,8 +326,11 @@ def _build_slidev(presentation: Dict[str, Any]) -> None:
         with st.spinner("⏲️ Preparing presentation..."):
             _cache_presentation(presentation)
             _start_slidev()
+            counter = 0
             while not _is_port_in_use(3030):
-                time.sleep(0.1)
+                counter += 0.1
+                time.sleep(counter)
+                logging.info("Waiting for Slidev to start...")
          
     except Exception as e:
         st.error("Sorry something went wrong")
@@ -341,7 +344,9 @@ def view_presentation(presentation: Dict[str, Any]) -> None:
         presentation: Dictionary containing presentation data
     """
     _build_slidev(presentation)
-    slidev_url = "http://localhost:3030/"
+    # Use the domain name instead of localhost for production
+    domain = os.environ.get("SLIDEV_HOST_URL", "http://localhost:3030/")
+    slidev_url = domain
     st.markdown("""
         <style>
             /* Hide Streamlit header and menu */

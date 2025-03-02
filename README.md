@@ -16,24 +16,62 @@ This approach eliminates screen sharing complications and ensures consistent pre
 
 For simplified deployment with containerization:
 
+### Local Development (without Caddy)
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/slides_deployment.git
 cd slides_deployment
 
 # Configure authentication
-mkdir secretes/
+mkdir secrets/
 nano ./secrets/github_token # paste your personal github token here 
 echo "your_password" > ./secrets/streamlit_passwords # place desired password(s) here
 # hash password (to make it somehow secure)
 python hash_password.py -f ./secrets/streamlit_passwords
 
-nano .env # set the env vars accordingly 
+# Set SLIDEV_HOST_URL in .env to http://localhost:3030/
+# This is already the default in the provided .env file
+
 # Deploy with Docker Compose
 docker-compose up --build -d
 ```
 
 Access the application at http://localhost:8502 after deployment.
+
+### Production Deployment (with Caddy)
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/slides_deployment.git
+cd slides_deployment
+
+# Configure authentication
+mkdir secrets/
+nano ./secrets/github_token # paste your personal github token here 
+echo "your_password" > ./secrets/streamlit_passwords # place desired password(s) here
+# hash password (to make it somehow secure)
+python hash_password.py -f ./secrets/streamlit_passwords
+
+# Configure for production
+# Set SLIDEV_HOST_URL in .env to /slidev/
+sed -i 's|SLIDEV_HOST_URL=http://localhost:3030/|SLIDEV_HOST_URL=/slidev/|' .env
+
+# Edit docker-compose.yaml to use host networking
+sed -i 's|#network_mode: "host"|network_mode: "host"|' docker-compose.yaml
+sed -i 's|ports:|#ports:|' docker-compose.yaml
+sed -i 's|  - "8502:8502"|#  - "8502:8502"|' docker-compose.yaml
+sed -i 's|  - "3030:3030"|#  - "3030:3030"|' docker-compose.yaml
+
+# Configure Caddy (copy the provided Caddyfile to your Caddy config directory)
+sudo cp Caddyfile /etc/caddy/Caddyfile
+sudo systemctl reload caddy
+
+# Deploy with Docker Compose
+docker-compose up --build -d
+```
+
+Access the application at your configured domain after deployment.
 
 ## ⚙️ Application Workflow
 
@@ -132,10 +170,15 @@ SlideMaster3000 automatically detects folders containing a `slides.md` file and 
   - `GITHUB_TOKEN_FILE`: Path to the GitHub token file (default: `./secrets/github_token`)
   - `GITHUB_USER`: GitHub username that owns the slides repository (default: `felixscode`)
   - `GITHUB_REPO`: GitHub repository name containing the presentations (default: `slides`)
+  - `SLIDEV_HOST_URL`: URL path where Slidev presentations will be served (default: `/slidev/`)
 - **Authentication Management**: Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
 - **Remote Presentation Control**: The `--remote` flag enables multi-device presentation control
 - **Custom Interface**: Modify the iframe CSS in `view_presentation()` function to customize the presentation view
 - **Process Management**: The application automatically handles port conflicts and process management
+- **Reverse Proxy Setup**: The provided Caddyfile configures a reverse proxy that:
+  - Routes the main Streamlit application from your domain's root path
+  - Routes the Slidev presentations through `/slidev/` without exposing port 3030
+  - Eliminates the need to open additional ports in your firewall
 
 ## ❓ Frequently Asked Questions
 
