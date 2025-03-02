@@ -26,5 +26,5 @@ EXPOSE 8502
 EXPOSE 3030
 
 # Run Streamlit
-CMD ["streamlit", "run", "/app/slidev_viewer.py", "--server.headless=true", "--server.port=8502", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
+CMD ["streamlit", "run", "/app/slide_master_3000.py", "--server.headless=true", "--server.port=8502", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
 

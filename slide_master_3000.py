@@ -19,7 +19,7 @@ GITHUB_TOKEN_FILE = Path(os.environ.get("GITHUB_TOKEN_FILE", "./secrets/github_t
 GITHUB_USER = os.environ.get("GITHUB_USER", "felixscode")
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "slides")
 LOGLEVEL = logging.INFO
-SLIDEV_PID_ENV_VAR = "SLIDEV_PID"
+
 
 # --- ASYNC API CALLS ---
 def _get_github_token() -> str:

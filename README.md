@@ -167,12 +167,15 @@ SlideMaster3000 automatically detects folders containing a `slides.md` file and 
   - `GITHUB_REPO`: GitHub repository name containing the presentations (default: `slides`)
   - `SLIDEV_HOST_URL`: URL path where Slidev presentations will be served (default: `/slidev/`)
 - **Authentication Management**: Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
-- **Production Build**: This application now uses `npx slidev build` to create static production builds instead of running Slidev in development mode, which solves many deployment issues
-- **Custom Interface**: Modify the iframe CSS in `view_presentation()` function to customize the presentation view
-- **Process Management**: The application automatically handles port conflicts and process management
+- **Static Build Architecture**: The application:
+  - Uses `build_and_serve.sh` script to build Slidev content with `npx slidev build ` 
+  - Serves static files using a Python HTTP server
+- **Process Management**: The application automatically:
+  - Stops any process using port 3030 before starting a new presentation
+  - Sets maximum wait time limits to prevent hanging on failed server startups
 - **Reverse Proxy Setup**: The provided Caddyfile configures a reverse proxy that:
   - Routes the main Streamlit application from your domain's root path
-  - Routes the Slidev presentations through `/slidev/` without exposing port 3030
+  - Routes the Slidev presentations through subdomain without exposing port 3030
   - Eliminates the need to open additional ports in your firewall
 
 ## ❓ Frequently Asked Questions
@@ -181,14 +184,14 @@ SlideMaster3000 automatically detects folders containing a `slides.md` file and 
 A: SlideMaster3000 provides authentication, centralized presentation management, and eliminates the need for multiple server instances.
 
 **Q: Is SlideMaster3000 suitable for enterprise presentations?**  
-A: NO! As of now SlideMaster3000 is a **1. DAY build**. Authentication is **not secure** and process managemnt quite ambigous
+A: NO! As of now SlideMaster3000 is a **1. DAY build**. Authentication is **not secure** and process management quite ambiguous
 
 **Q: Can the default port configuration be modified?**  
 A: Yes, port configuration can be modified by updating the Slidev startup parameters and corresponding iframe URL.
 
 ## 📃 License
 
-This software is available for use under standard open-source terms. Attribution is appreciated but not required.
+This software is available for use under standard MIT open-source terms.
 
 ---
 
