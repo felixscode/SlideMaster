@@ -246,18 +246,20 @@ def _is_port_in_use(port: int) -> bool:
 
 def _start_slidev() -> None:
     """
-    Start the Slidev server if not already running.
+    Build and serve Slidev in production mode.
     Stops any existing Slidev process first.
     """
     _stop_slidev()
-    logging.info("Starting Slidev")
+    logging.info("Building and starting Slidev")
+    
+    # Run the build and serve script
     subprocess.Popen(
-        ['npx', 'slidev', '--remote'],
+        ['bash', 'build_and_serve.sh'],
         cwd=str(Path("./").absolute()),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
-    logging.info("...Slidev started")
+    logging.info("...Slidev build process started")
 
 def _extract_pid(command_output: str) -> Optional[str]:
     """
@@ -306,11 +308,33 @@ def _stop_slidev() -> None:
     Stops any running Slidev process by finding and killing its PID.
     Continuously checks until port 3030 is free.
     """
-    while _is_port_in_use(3030):
+    # Check if port is in use
+    if _is_port_in_use(3030):
+        logging.info("Port 3030 is in use, stopping process")
+        
+        # Try to find and kill the process
         pid = _find_process_using_port(3030)
         if pid:
-            os.kill(pid, signal.SIGKILL)
-        time.sleep(0.5)
+            try:
+                os.kill(pid, signal.SIGKILL)
+                logging.info(f"Killed process with PID {pid}")
+            except OSError as e:
+                logging.error(f"Failed to kill process: {e}")
+        
+        # Also try to kill Python HTTP server processes that might be serving on port 3030
+        try:
+            subprocess.run(
+                "pkill -f 'python -m http.server 3030'", 
+                shell=True, 
+                stdout=subprocess.DEVNULL, 
+                stderr=subprocess.DEVNULL
+            )
+            logging.info("Killed Python HTTP server processes")
+        except Exception as e:
+            logging.error(f"Failed to kill Python HTTP server: {e}")
+            
+        # Give processes time to shut down
+        time.sleep(1)
 
 def _build_slidev(presentation: Dict[str, Any]) -> None:
     """

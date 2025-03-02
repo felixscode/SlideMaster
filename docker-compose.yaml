@@ -7,12 +7,6 @@ services:
       dockerfile: Dockerfile
     # Choose the appropriate networking based on environment:
     # For production with Caddy, uncomment the line below:
-    #network_mode: "host"
-    
-    # For local development without Caddy, uncomment these lines:
-    ports:
-      - "8502:8502"
-      - "3030:3030"
-      
+    network_mode: "host"
     env_file:
       - .env

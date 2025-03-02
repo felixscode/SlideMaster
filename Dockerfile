@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     procps \
     lsof \
+    bash \
     && curl -sL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean
@@ -19,15 +20,11 @@ RUN npm install @slidev/cli @slidev/theme-default @slidev/theme-seriph
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
-# Install Slidev CLI and themes
 # Copy the app code
 COPY . /app
 EXPOSE 8502
 EXPOSE 3030
 
-
-
 # Run Streamlit
 CMD ["streamlit", "run", "/app/slidev_viewer.py", "--server.headless=true", "--server.port=8502", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
-
 

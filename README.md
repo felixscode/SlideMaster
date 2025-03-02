@@ -10,7 +10,7 @@ SlideMaster3000 addresses common challenges in presentation delivery by:
 2. 💻 Rendering them on a server using Streamlit
 3. 🌐 Making them accessible via standard web browsers
 
-This approach eliminates screen sharing complications and ensures consistent presentation experiences across different environments.
+This approach ensures consistent presentation experiences across different environments.
 
 ## 🐳 Docker Deployment
 
@@ -57,13 +57,8 @@ python hash_password.py -f ./secrets/streamlit_passwords
 # Set SLIDEV_HOST_URL in .env to /slidev/
 sed -i 's|SLIDEV_HOST_URL=http://localhost:3030/|SLIDEV_HOST_URL=/slidev/|' .env
 
-# Edit docker-compose.yaml to use host networking
-sed -i 's|#network_mode: "host"|network_mode: "host"|' docker-compose.yaml
-sed -i 's|ports:|#ports:|' docker-compose.yaml
-sed -i 's|  - "8502:8502"|#  - "8502:8502"|' docker-compose.yaml
-sed -i 's|  - "3030:3030"|#  - "3030:3030"|' docker-compose.yaml
 
-# Configure Caddy (copy the provided Caddyfile to your Caddy config directory)
+# Configure Caddy (copy the provided Caddyfile to your Caddy config directory) (or use nano to modyfi accordingly)
 sudo cp Caddyfile /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 
@@ -172,7 +167,7 @@ SlideMaster3000 automatically detects folders containing a `slides.md` file and 
   - `GITHUB_REPO`: GitHub repository name containing the presentations (default: `slides`)
   - `SLIDEV_HOST_URL`: URL path where Slidev presentations will be served (default: `/slidev/`)
 - **Authentication Management**: Each line in `secrets/streamlit_passwords` should contain a SHA-256 hashed password (use the included `hash_password.py` utility to generate them)
-- **Remote Presentation Control**: The `--remote` flag enables multi-device presentation control
+- **Production Build**: This application now uses `npx slidev build` to create static production builds instead of running Slidev in development mode, which solves many deployment issues
 - **Custom Interface**: Modify the iframe CSS in `view_presentation()` function to customize the presentation view
 - **Process Management**: The application automatically handles port conflicts and process management
 - **Reverse Proxy Setup**: The provided Caddyfile configures a reverse proxy that:
